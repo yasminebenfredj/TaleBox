@@ -1,6 +1,6 @@
 import tkinter
 from tkinter import *
-import TaleBox as predicte
+import TaleBox as Prediction 
 
 class interface : 
     tale_box  =  Tk()
@@ -59,12 +59,14 @@ class interface :
             self.box.config(state=NORMAL)
             self.box.insert(END, "Vous : \n" ,"tag1")
             self.box.insert(END, ""+msg + '\n\n')
-            pred , proba= predicte.predire_genre(texte=msg)
+            pred = Prediction.predire_genre(msg)
             #reponce = getReponse(pred, intents)
 
             self.box.insert(END, "Bot : \n" ,"tag1")
-            self.box.insert(END, "Cette histoire tourne autour du thème :\n" + ' '.join(pred) + '\n' )
+            self.box.insert(END, "Cette histoire tourne autour des thémes :\n" + pred + '.\n\n' )
             self.box.config(state=DISABLED)
+            msg = ''
+            pred = ''
             self.box.yview(END)
 
         

@@ -1,170 +1,157 @@
-import numpy as np
-from pandas import DataFrame
 import random
 import re
-import nltk
+from pandas import DataFrame 
 import pandas as pd
-import gensim
 import gensim.corpora as corpora
+import gensim
 from gensim.utils import simple_preprocess
-from gensim.models import CoherenceModel
 import gensim.models 
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 import spacy
-from nltk.stem import WordNetLemmatizer
 from sklearn.decomposition import LatentDirichletAllocation as LDA
 from sklearn.model_selection import GridSearchCV
+import pickle
+from gensim.models import LdaModel
+import Fonctions_utile as fct
+from gensim.corpora import Dictionary
+from gensim.test.utils import datapath
+from pathlib import Path
+import numpy as np 
 
 nlp = spacy.load("fr_core_news_md")
-lemmatizer = WordNetLemmatizer()
+
 
 """   1 : Import Dataset   """
-
 data_contes = pd.read_csv(r"TaleBox_contes.csv", sep=',', encoding ='ISO-8859-1')
-data_genres = pd.read_csv(r"TaleBox_genres.csv", sep=',', encoding ='ISO-8859-1')
 contes = data_contes['conte'].tolist()
-genres = data_contes['genre'].tolist()
 
 """   2 : retirer caractére spéciaux   """
-
-def sup_caractere_spéciaux(contes):
-    return [re.sub('\s+', ' ', sent) for sent in contes]
- 
-contes = sup_caractere_spéciaux(contes)
-
+contes = fct.sup_caractere_spéciauxDoc(contes)
 
 """   3 : Tokenisation  """
-
-def tokenize(sentences) :
-    for mot in sentences:
-        yield(simple_preprocess(str(mot), deacc=True))
-
-tokens = list(tokenize(contes))
+tokens = list(fct.tokenizeDoc(contes))
 
 """  4 : creation de bigram et trigram français  """
-""" seuil (threshold)  plus élevé ==> moins de phrases.
-avec 10 on se retourve avec resultat faut (ex: la_maison ) 
-avec 100 on a toujours une faute (ex: tu_es)
-donc on laisse le threshold a 150 """
-
-def get_bigrams(tokens):
-    bigram =  gensim.models.Phrases(tokens, min_count=5, threshold=150)
-    bigram_model = gensim.models.phrases.Phraser(bigram)
-
-    for conte in tokens :
-        yield(bigram_model[conte])
-
-def get_trigrams(tokens):
-    bigram =  gensim.models.Phrases(tokens, min_count=5, threshold=150)
-    trigram =  gensim.models.Phrases(bigram[tokens], threshold=150)
-    bigram_model = gensim.models.phrases.Phraser(bigram)
-    trigram_model = gensim.models.phrases.Phraser(trigram)
-
-    for conte in tokens :
-        yield(trigram_model[bigram_model[conte]])
-
-contes_bigrams = list(get_bigrams(tokens))
-contes_trigrams = list(get_trigrams(tokens))
+contes_bigrams = list(fct.get_bigramsDoc(tokens))
+contes_trigrams = list(fct.get_trigramsDoc(tokens))
 
 
-
-"""  5 : supprimer les mot d'arret """
-
-mot_arret = stopwords.words('french')
-mot_arret.extend([ "a", "afin",
-                   "ah", "ai", "aie", "aient", "aies", "ait", "alors", 'bon', 'peu' ,"veut"
-                   "après", "as", "attendu", "au", "delà", "devant", 'fois', 'encore',
-                   "aucun", "aucune", "audit", "auprès", "auquel", "aura", "vouloir"
-                   "aurai", "auraient", "aurais", "aurait", "auras", "aurez", "met", 'mettre'
-                   "auriez", "aurions", "aurons", "auront", "aussi", "autour", "tre",
-                   "autre", "autres", "autrui", "aux", "auxdites", "auxdits",
-                   "auxquelles", "auxquels", "avaient", "avais", "avait", "avant",
-                   "avec", "avez", "aviez", "avions", "avons", "ayant", "ayez", "ayons",
-                   "b", "bah", "banco", "ben", "bien", "bé", "c", "c'", "c'est", "c'était",
-                   "l'","d'", "etant", "tel", "entre", "si", "ni", "etre", 'ete', 'apres' ,
-                   'cela', 'ci','tous', 'trois', 'meme', 'etait','sais' , 'donc' , 'comme' ,
-                   'deja', 'assez' , 'depuis' , 'eh' , 'aupres', 'oui', 'non', 'cette' , 'oh' ,'tout' ])
-
-def filtre_motArret(contes) :
-    for conte in contes :
-        yield([token for token  in simple_preprocess(str(conte)) if token not in mot_arret ])
-
-
-contes_filtrer = list(filtre_motArret(contes_trigrams))
+"""  5 : supprimer les mot d'arret  """
+mot_arret = fct.mot_arret
+contes_filtrer = list(fct.filtre_motArretDoc(contes_trigrams))
 
 
 """   6 : lemmatisation   """
-
-def lemmatiser(contes, permi=['ADV', 'ADJ','NOUN', 'VERB'] ) :
-    for conte in contes :
-        yield([token.lemma_ for token in nlp(" ".join(conte)) if token.pos_ in permi])
-
-contes_lemmatiser = list(lemmatiser(contes_filtrer ))
+contes_lemmatiser = list(fct.lemmatiserDoc(contes_filtrer ))
 
 
+"""  7.1 : LDA model  """
+dictionary = Dictionary(contes_lemmatiser)
 
-"""   7 :  cluster de mots pour la prédiction du sujet  """
+# Filter out words that occur less than 20 documents, or more than 50% of the documents.
+dictionary.filter_extremes(no_below=20, no_above=0.5) #comme faire/dire/puis...
+corpus = [dictionary.doc2bow(doc) for doc in contes_lemmatiser]
 
-def join(contes):
-    text = []
-    for conte in contes :
-        text.append(' '.join(conte))
-    return text
-        
+# Set training parameters.
+num_topics = 20
+eval_every = None  # Don't evaluate model perplexity, takes too much time.
+
+# Make a index to word dictionary.
+temp = dictionary[1]  # This is only to "load" the dictionary.
+id2word = dictionary.id2token
+
+lda = LdaModel(corpus=corpus,id2word=dictionary,
+               num_topics=num_topics)
 
 
-contes_lemmatiser_df = DataFrame( join(contes_lemmatiser),columns=['Contes'])
+"""  8.1 : Enregister """
+with open('corpus', 'wb') as file1:
+    pickle.dump(corpus, file1)
+
+dictionary.save("dictionary")
+
+with open('modelLDA', 'wb') as file2:
+    pickle.dump(lda,file2)
+
+
+
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+""" Ici je vais faire une autre maniére de prédire le genre d'une histoire """
+
+contes_lemmatiser_df = DataFrame( fct.join(contes_lemmatiser),columns=['Contes'])
 contes_vectorizer = CountVectorizer(stop_words = mot_arret, ngram_range=(1, 4), min_df = 5, max_df = 0.8 )
 contes = contes_vectorizer.fit_transform(contes_lemmatiser_df['Contes'])
 
-"""   8 : Recherche des meilleurs hyperparametre pour notre model  """
+"""   7.2 : Recherche des meilleurs hyperparametre pour notre model  """
 """ le grid search va nous donnée le meilleur nombre de genre """
          
 #model LDA non supervisé pour avoir proba des mots
 lda = LDA()
               
 # Grid Search
-parameters = [{'n_components': [6,7,9,10,15,20,25]}]
+parameters = [{'n_components': [10,15,20,25]}]
 model = GridSearchCV(lda,parameters)
               
 #Fit the model
 model.fit(contes)
 best_lda = model.best_estimator_
-
+best_lda = best_lda.fit(contes)
 genre_num = []
 motClef = []
-def get_Genre(model , vectorisation , top_mot):
+def get_Genre(model , vectorisation , nb_mot):
     tokens = vectorisation.get_feature_names()
     for ind, genre in enumerate(model.components_):
-        genre_num.append("Genre {}:".format(ind))
-        motClef.append([tokens[i] for i in genre.argsort()[:- top_mot - 1:-1]])
-        #print("\nGenre {}:".format(ind))
-        #print(" ".join([tokens[i] for i in genre.argsort()[:- top_mot - 1:-1]]))
+        genre_num.append("Genre {} : ".format(ind))
+        motClef.append([tokens[i] for i in genre.argsort()[:- nb_mot - 1:-1]])
         
 get_Genre(best_lda, contes_vectorizer ,20)
 
-"""  9 : predire le sujet d'un nouveau texte   """
+"""  8.2 : predire le sujet d'un nouveau texte   """
 """ probabilité d'apparition des mot dans chaque genre """
 
 genre_motClef = pd.DataFrame(motClef)
-#genre_motClef.columns = contes_vectorizer.get_feature_names()
-genre_motClef.index = genre_num
+genres = ['Famille , Enfant',
+         'Vie , Aventure',
+         'Fantastique , Royaume',
+         'Aventure , Animeaux',
+         'Royaume , Nature , Merveilleu' ,
+         'Amour , Drame',
+         'Drame , Famille',
+         'Aventure , Nature , Solitude',
+         'Courage , Fantastique',
+         'Aventure , Famille']
 
-""""""""""""""""""""""""""""""""""""""""""""""""
+
+genre_motClef.index = genres
+genre_motClef.to_csv("TaleBox_genres.csv")
+
+"""   9.2 : Assignement des genres """
 
 def predire_genre(texte, nlp = nlp ) :
     '''préparer le texte'''
-    texte = sup_caractere_spéciaux(texte)
-    texte = list (tokenize(texte))
-    texte = list(get_trigrams(texte))
-    texte = list(filtre_motArret(texte))
-    texte = list(lemmatiser(texte))
-    texte = join(texte)
-    texte = contes_vectorizer.transform(texte)
+    texte= text1
+    texte = fct.sup_caractere_spéciaux(texte)
+    texte = list (fct.tokenize(texte))
+    texte = list(fct.get_trigrams(texte))
+    texte = list(fct.filtre_motArret(texte))
+    texte = list(fct.lemmatiser(texte))
+    texte = ' '.join(texte)
+    texte = contes_vectorizer.transform([texte])
 
     ''' LDA Transform '''
-    genre_probability_scores = best_lda.transform(texte)
-    genre = genre_motClef.iloc[np.argmax(genre_probability_scores), :].values.tolist()
-    return  genre, genre_probability_scores
+    genre_probability = best_lda.transform(texte)
+    ind = np.argmax(genre_probability)
+    return genres[ind]
+
+
+""" 10.2 :  testes """
+text1 = contes_lemmatiser_df['Contes'][2]
+
+text2 = contes_lemmatiser_df['Contes'][4]
+""" """
+
+#predire_genre(texte=text1)
+#predire_genre(texte=text2)
 
