@@ -1,6 +1,6 @@
 import tkinter
 from tkinter import *
-import TaleBox as Prediction 
+import Prediction 
 
 class interface : 
     tale_box  =  Tk()
@@ -20,10 +20,8 @@ class interface :
     def setLogo(self):
         self.tale_box.iconbitmap("TaileBox_Icon.ico")
 
-
     def setColor(self,):
         self.tale_box.config(bg = self.Dark) 
-
 
     def entree(self):
         #Bouton "Répondre
@@ -46,8 +44,7 @@ class interface :
         self.box.tag_config("tag1",font=("Verdana",14, 'bold'), foreground= self.Dark)
         self.box.config(foreground= self.Dark, font=("Verdana", 10 ))
         self.box.config(state=DISABLED)
-        
-        
+                
     def envoie(self) :
         #Insertion de message et repense 
         msg = self.reponse_entre.get("1.0",'end-1c').strip()
@@ -65,11 +62,10 @@ class interface :
             self.box.insert(END, "Bot : \n" ,"tag1")
             self.box.insert(END, "Cette histoire tourne autour des thémes :\n" + pred + '.\n\n' )
             self.box.config(state=DISABLED)
-            msg = ''
+            msg =  ''
             pred = ''
             self.box.yview(END)
-
-        
+ 
     def affiche(self):
         self.tale_box.geometry("715x500")
         self.tale_box.maxsize(800,600)
@@ -83,13 +79,11 @@ class interface :
         self.envoie()
         self.tale_box.mainloop()
 
-
 class Repondre_Prediction:
     message =''
     
     def __init__(self,message):
         self.message = message
-
 
 def main():
     taleBox = interface()
