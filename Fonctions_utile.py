@@ -101,3 +101,16 @@ def join(contes):
 
 
 
+
+""" Preparer texte """
+
+def preparer(texte) :
+    texte = sup_caractere_spéciaux(texte)
+    texte = list (tokenize(texte))
+    texte = list(get_trigrams(texte))
+    texte = list(filtre_motArret(texte))
+    texte = list(lemmatiser(texte))
+    texte = ' '.join(texte)
+    return texte;
+
+

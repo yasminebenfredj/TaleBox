@@ -30,14 +30,6 @@ with open('BestLDA', 'rb') as file4:
     
 dictionary = corpora.Dictionary.load("dictionary")
 
-""" Pour testes"""
-txt =  open('C:/Users/Jasmine/Desktop/hisoire.txt', 'r')
-text1 = txt.read()
-txt.close()
-txt =  open('C:/Users/Jasmine/Desktop/histoire.txt', 'r')
-text2 = txt.read()
-txt.close()
-
 
 """   8.2 : Assignement des genre  """
 """ probabilité d'apparition des mot dans chaque genre """
@@ -68,12 +60,8 @@ data_genres.index.name = 'Genre'
 
 def predire_genre(texte, nlp = nlp ) :
     '''préparer le texte'''
-    texte = fct.sup_caractere_spéciaux(texte)
-    texte = list (fct.tokenize(texte))
-    texte = list(fct.get_trigrams(texte))
-    texte = list(fct.filtre_motArret(texte))
-    texte = list(fct.lemmatiser(texte))
-    texte = ' '.join(texte)
+
+    texte = fct.preparer(texte)
     texte = contes_vectorizer.transform([texte])
 
     ''' LDA Transform '''

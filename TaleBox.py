@@ -1,106 +1,57 @@
-""" Dont run this file """
-
-import random
-import re
-import pandas as pd
-import gensim.corpora as corpora
-import gensim
-from gensim.utils import simple_preprocess
-import gensim.models 
-from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.decomposition import LatentDirichletAllocation as LDA
-from sklearn.model_selection import GridSearchCV
-import pickle
-from gensim.models import LdaModel
-import Fonctions_utile as fct
-from gensim.corpora import Dictionary
-from gensim.test.utils import datapath
-from pathlib import Path
-import numpy as np 
+import chatterbot
+from chatterbot import ChatBot
+from chatterbot.trainers import ListTrainer
+from chatterbot.response_selection import get_first_response
+from chatterbot.comparisons import LevenshteinDistance
+from chatterbot.trainers import ChatterBotCorpusTrainer
 
 
-"""   1 : Import Dataset   """
-data_contes = pd.read_csv(r"TaleBox_contes.csv", sep=',', encoding ='ISO-8859-1')
-contes = data_contes['conte'].tolist()
+# BestMatch:  cette methode retourne la meilleur répense (chatbot,liste mot exclus)
 
-"""   2 : retirer caractére spéciaux   """
-contes = fct.sup_caractere_spéciauxDoc(contes)
+Tale_Bot = ChatBot(name='TaleBot', read_only=False, logic_adapters=[
+    {"import_path": "TaleBox_adapter.TaleLogicAdapter"},
+    {"import_path": 'chatterbot.logic.BestMatch',
+     "statement_comparison_function": LevenshteinDistance,
+     "response_selection_method": get_first_response},
+        ])
+        
 
-"""   3 : Tokenisation  """
-tokens = list(fct.tokenizeDoc(contes))
-
-"""  4 : creation de bigram et trigram français  """
-contes_bigrams = list(fct.get_bigramsDoc(tokens))
-contes_trigrams = list(fct.get_trigramsDoc(tokens))
-
-
-"""  5 : supprimer les mot d'arret  """
-mot_arret = fct.mot_arret
-contes_filtrer = list(fct.filtre_motArretDoc(contes_trigrams))
-
-
-"""   6 : lemmatisation   """
-contes_lemmatiser = list(fct.lemmatiserDoc(contes_filtrer ))
-
-
-"""  7.1 : LDA model  """
-dictionary = Dictionary(contes_lemmatiser)
-
-# Filter out words that occur less than 20 documents, or more than 50% of the documents.
-dictionary.filter_extremes(no_below=20, no_above=0.5) #comme faire/dire/puis...
-corpus = [dictionary.doc2bow(doc) for doc in contes_lemmatiser]
-
-# Set training parameters.
-num_topics = 20
-eval_every = None  # Don't evaluate model perplexity, takes too much time.
-
-# Make a index to word dictionary.
-temp = dictionary[1]  # This is only to "load" the dictionary.
-id2word = dictionary.id2token
-
-lda = LdaModel(corpus=corpus,
-               id2word=dictionary,
-               num_topics=num_topics)
+intents = ['bonjour!',
+           'salut!',
+           'comment tu vas ?',
+           'trés bien et toi ?',
+           'super, ça va moi aussi.',
+           'je content que tu vas bien.',
+           'pas bien!',
+           'ah je suis desolé.',
+           'je ne suis pas bien!',
+           'je suis triste pour toi!',
+           'qui es tu ?',
+           'je m\'appelle TaleBox, je peut crée et raconter une histoire avec toi.',
+           'tu peut faire quoi ?',
+           'je peut crée et raconter une histoire avec toi.',
+           'comment commencer l\'histoire',
+           'je te laisse me donner la prémiere phrase...',
+           'je souhaite commencer l\'histoire',
+           'je te laisse commencer alors par une phrase simple...',
+           'quel genre de phrase ?',
+           'tu n\'as q\'a me donner un debut avec le lieu ou le contexte.',
+           'je sais pas quoi dire.',
+           'donne moi une phrase avec un lieu ou un contexte quelconque.']
 
 
-"""  8.1 : Enregister """
-with open('corpus', 'wb') as file1:
-    pickle.dump(corpus, file1)
+trainer = ListTrainer(Tale_Bot)
+for intent in intents :
+    trainer.train(intent)
 
-dictionary.save("dictionary")
 
-with open('modelLDA', 'wb') as file2:
-    pickle.dump(lda,file2)
+#corpus = ChatterBotCorpusTrainer(Tale_Bot)
+#corpus.train('chatterbot.corpus.french')
 
-###############################################################################
+def repondre(msg) :
+    rep = Tale_Bot.get_response(msg)
+    print(rep)
+    return rep
 
-""" Ici je vais faire une autre méthode de prédire le genre d'une histoire """
 
-contes_lemmatiser_df = pd.DataFrame( fct.join(contes_lemmatiser),columns=['Contes'])
-contes_vectorizer = CountVectorizer(stop_words = mot_arret, ngram_range=(1, 4), min_df = 5, max_df = 0.8 )
-contes = contes_vectorizer.fit_transform(contes_lemmatiser_df['Contes'])
-
-"""   7.2 : Recherche des meilleurs hyperparametre pour notre model  """
-""" le grid search va nous donnée le meilleur nombre de genre """
-         
-#model LDA non supervisé pour avoir proba des mots
-lda = LDA()
-              
-# Grid Search
-parameters = [{'n_components': [10,15,20,25]}]
-model = GridSearchCV(lda,parameters)
-              
-#Fit the model
-model.fit(contes)
-best_lda = model.best_estimator_
-best_lda = best_lda.fit(contes)
-
-"""  9.1 : Enregister """
-
-with open('Vectorizer', 'wb') as file3:
-    pickle.dump(contes_vectorizer,file3)
-
-with open('BestLDA', 'wb') as file4:
-    pickle.dump(best_lda,file4)
 

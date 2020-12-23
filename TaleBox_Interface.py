@@ -1,6 +1,7 @@
 import tkinter
 from tkinter import *
-import Prediction 
+import TaleBox
+import Fonctions_utile as fct
 
 class interface : 
     tale_box  =  Tk()
@@ -55,13 +56,20 @@ class interface :
         if msg != '':
             self.box.config(state=NORMAL)
             self.box.insert(END, "Vous : \n" ,"tag1")
-            self.box.insert(END, ""+msg + '\n\n')
-            pred = Prediction.predire_genre(msg)
+            self.box.insert(END, ""+ msg + '\n\n')
+            pred = TaleBox.repondre(msg)
+            histoire = open('histoire.txt','a')
+            msg = fct.preparer(msg)
+            n = histoire.write(msg)
+            histoire.close()
+           
+            
             #reponce = getReponse(pred, intents)
 
             self.box.insert(END, "Bot : \n" ,"tag1")
-            self.box.insert(END, "Cette histoire tourne autour des thémes :\n" + pred + '.\n\n' )
+            self.box.insert(END, ""+ pred.text + '.\n\n' )
             self.box.config(state=DISABLED)
+            
             msg =  ''
             pred = ''
             self.box.yview(END)
