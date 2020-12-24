@@ -32,7 +32,7 @@ tokens = list(fct.tokenizeDoc(contes))
 
 """  4 : creation de bigram et trigram français  """
 contes_bigrams = list(fct.get_bigramsDoc(tokens))
-contes_trigrams = list(fct.get_trigramsDoc(tokens))
+contes_trigrams = list(fct.get_trigramsDoc(contes_bigrams))
 
 
 """  5 : supprimer les mot d'arret  """

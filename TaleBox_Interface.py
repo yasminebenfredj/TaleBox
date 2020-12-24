@@ -58,11 +58,6 @@ class interface :
             self.box.insert(END, "Vous : \n" ,"tag1")
             self.box.insert(END, ""+ msg + '\n\n')
             pred = TaleBox.repondre(msg)
-            histoire = open('histoire.txt','a')
-            msg = fct.preparer(msg)
-            n = histoire.write(msg)
-            histoire.close()
-           
             
             #reponce = getReponse(pred, intents)
 
@@ -98,4 +93,6 @@ def main():
     taleBox.affiche()
 
 if __name__ == "__main__":
+    histoire = open('histoire.txt','w')
+    histoire.close()
     main()

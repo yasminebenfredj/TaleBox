@@ -2,7 +2,6 @@ import re
 import nltk
 from nltk.corpus import stopwords
 import gensim
-from gensim.utils import simple_preprocess
 import spacy
 
 
@@ -11,18 +10,19 @@ nlp = spacy.load("fr_core_news_md")
 """   2 : retirer caractére spéciaux   """
 
 def sup_caractere_spéciaux(contes):
-    return  re.findall(r'\w+', contes, flags = re.UNICODE)
+    contes = contes.lower()
+    return  re.sub(r"[,.\"\!@%£#&^*(){}?/;`~:<>+=-\\]","",contes)
 
 def sup_caractere_spéciauxDoc(contes):
-    return[re.findall(r'\w+', sent, flags = re.UNICODE)  for sent in contes]
+    return[sup_caractere_spéciaux(sent)  for sent in contes]
 
 """   3 : Tokenisation  """
 def tokenizeDoc(sentences) :
     for mot in sentences:
-            yield(simple_preprocess(str(mot), deacc=True))
+        yield(nltk.word_tokenize(str(mot)))
             
 def tokenize(sentences) :
-    return simple_preprocess(str(sentences), deacc=True)
+    return nltk.word_tokenize(str(sentences))
 
 """  4 : creation de bigram et trigram français  """
 """ seuil (threshold)  plus élevé ==> moins de phrases.
@@ -60,7 +60,8 @@ def get_trigramsDoc(tokens):
 
 """  5 : supprimer les mot d'arret """
 mot_arret = stopwords.words('french')
-mot_arret.extend([ "a", "afin",'faire',
+
+mot_arret.extend([ "à", "afin",'faire',
                    "ah", "ai", "aie", "aient", "aies", "ait", "alors", 'bon', 'peu' ,"veut",
                    "après", "as", "attendu", "au", "delà", "devant", 'fois', 'encore','plus',
                    "aucun", "aucune", "audit", "auprès", "auquel", "aura", "vouloir",
@@ -75,11 +76,11 @@ mot_arret.extend([ "a", "afin",'faire',
                    'deja', 'assez' , 'depuis' , 'eh' , 'aupres', 'oui', 'non', 'cette' , 'oh' ,'tout' ])
 
 def filtre_motArret(contes) :
-    return [token for token  in simple_preprocess(str(contes)) if token not in mot_arret ]
+    return [token for token  in contes if token not in mot_arret ]
 
 def filtre_motArretDoc(contes) :
     for conte in contes :
-        yield([token for token  in simple_preprocess(str(conte)) if token not in mot_arret ])
+        yield([token for token  in conte if token not in mot_arret ])
 
 
 
