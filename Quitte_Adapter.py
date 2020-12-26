@@ -1,6 +1,7 @@
 from chatterbot.logic import LogicAdapter
 from chatterbot.conversation import Statement
-import Prediction 
+import  MarkovGeneration as mkv
+import pickle
 
 class QuitteLogicAdapter(LogicAdapter) :
     '''
@@ -14,14 +15,21 @@ class QuitteLogicAdapter(LogicAdapter) :
      super().__init__(chatbot, **kwargs)
 
     def can_process(self, statement):
-        mots_fin = [['terminer','histoire'],
-                    ['fini', 'histoire'],
+        mots_fin = [['terminer',"l'histoire"],
+                    ['fini', "l'histoire"],
                     ['veux', 'genre' ],
                     ['voudrais', 'terminer'],
-                    ['genre', 'histoire'],
+                    ['genre', "l'histoire"],
                     ['sortir', 'jeu'],
-                    ['arrêter', 'histoire']]
+                    ['sortir', 'veut'],
+                    ['veut', 'quitter'],
+                    ['quit'],
+                    ['arrêter', "l'histoire"]]
         
+        """  Enregister mots_quit """
+        with open('mots_quit', 'wb') as file:
+            pickle.dump(mots_fin, file)
+            
         for mots in mots_fin:
             if all(mot in statement.text.split() for mot in mots) :
                 return True

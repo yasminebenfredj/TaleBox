@@ -62,7 +62,7 @@ class interface :
             #reponce = getReponse(pred, intents)
 
             self.box.insert(END, "Bot : \n" ,"tag1")
-            self.box.insert(END, ""+ pred.text + '.\n\n' )
+            self.box.insert(END, ""+ pred.text + '\n\n' )
             self.box.config(state=DISABLED)
             
             msg =  ''

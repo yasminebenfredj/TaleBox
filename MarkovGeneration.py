@@ -8,7 +8,7 @@ import Fonctions_utile as fct
 
 
 """   1 : Import Dataset   """
-data_contes = pd.read_csv(r"TaleBox_contes.csv", sep=',', encoding ='ISO-8859-1')
+data_contes = pd.read_csv(r"Données\TaleBox_contes.csv", sep=',', encoding ='ISO-8859-1')
 data = data_contes['conte'].tolist()
 
 """   2 : retirer caractére spéciaux   """
@@ -53,23 +53,21 @@ def markov_model(contes, contexte=contexte):
             model[current][new] = nb/total
     return model
 
-model = markov_model(contes )
+model = markov_model(contes)
 
-
-def markov_genere(long, debut, texte, txt=""):
-    if long == 0 or len(debut.split()) < 3 :
-            texte += "..."
-            return texte
+def markov_genere(long, debut, texte):
+    if long == 0 or len(debut.split()) < contexte:
+        texte += "..."
+        return texte, True
         
-    new_debut, txt = nb_dernier_mot(txt)
     try:
         index  = list(model[debut].values()).index(max(model[debut].values()))
         new = list(model[debut].keys())[index]
-        texte += debut + " "
-        return markov_genere(long-1, new, texte, txt)
+        texte += new + " "
+        return markov_genere(long-1, new, texte)
     
     except KeyError:
-        return markov_genere(long, new_debut, texte,txt)
+        return "Vous etes tellement doué que je n'est pas d'idée pour la suite, continuez ...", False
         
 
 def nb_dernier_mot(texte, nb=contexte) :
