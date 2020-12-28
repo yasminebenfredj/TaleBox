@@ -49,7 +49,7 @@ dictionary.filter_extremes(no_below=20, no_above=0.5) #comme faire/dire/puis...
 corpus = [dictionary.doc2bow(doc) for doc in contes_lemmatiser]
 
 # Set training parameters.
-num_topics = 20
+num_topics = 10
 
 # Make a index to word dictionary.
 temp = dictionary[1]  # This is only to "load" the dictionary.

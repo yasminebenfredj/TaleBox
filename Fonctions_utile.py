@@ -10,7 +10,7 @@ nlp = spacy.load("fr_core_news_md")
 
 def sup_caractere_spéciaux(contes):
     contes = contes.lower()
-    return  re.sub(r"[,.\"\!@%£#&^*(){}?/;`~:<>+=-\\]","",contes)
+    return  re.sub(r"[,.\"\!@%£#&^*()«»{}?/;`~:<>+=-\\]","",contes)
 
 def sup_caractere_spéciauxDoc(contes):
     return[sup_caractere_spéciaux(sent)  for sent in contes]

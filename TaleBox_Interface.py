@@ -1,5 +1,6 @@
 import tkinter
 from tkinter import *
+from PIL import ImageTk
 import TaleBox
 import Fonctions_utile as fct
 
@@ -28,20 +29,20 @@ class interface :
         #Bouton "Répondre
         bouton = Button(self.tale_box, font=("Verdana",12,'bold'),text = "Répondre", width="10", height=2 ,
                  bd=0, bg=self.Beige,command= self.envoie )
-        bouton.place(x=575, y=445, height=40)
+        bouton.place(x=655, y=600, height=50)
 
         #Entree de repense 
         self.reponse_entre = Text(self.tale_box, font=("Helvetica",13, 'normal','italic'))
-        self.reponse_entre.place(x=20, y = 445 , height = 40, width = 500)
+        self.reponse_entre.place(x=30, y = 600 , height = 50, width = 600)
         self.reponse_entre.bind("<Return>", self.envoie)
 
     def tale_avance(self):
         self.box.config(bd=0,bg = self.Ivory, height="8", width="50", font="Arial")
-        self.box.place(x = 20, y = 20, height = 400, width = 670)
+        self.box.place(x = 30, y = 50, height = 510, width = 740)
         
         self.box.tag_add("tag1", "1.5", "1.9")
         self.box.insert(END, "Bot : \n" ,"tag1")
-        self.box.insert(END, "Bonjours, entrez une histoire et je vous donne le genre.  \n\n" )
+        self.box.insert(END, "Bonjour et bienvenue à TaleBox!   \n\n" )
         self.box.tag_config("tag1",font=("Verdana",14, 'bold'), foreground= self.Dark)
         self.box.config(foreground= self.Dark, font=("Verdana", 10 ))
         self.box.config(state=DISABLED)
@@ -59,8 +60,6 @@ class interface :
             self.box.insert(END, ""+ msg + '\n\n')
             pred = TaleBox.repondre(msg)
             
-            #reponce = getReponse(pred, intents)
-
             self.box.insert(END, "Bot : \n" ,"tag1")
             self.box.insert(END, ""+ pred.text + '\n\n' )
             self.box.config(state=DISABLED)
@@ -68,11 +67,12 @@ class interface :
             msg =  ''
             pred = ''
             self.box.yview(END)
+            
  
     def affiche(self):
-        self.tale_box.geometry("715x500")
-        self.tale_box.maxsize(800,600)
-        self.tale_box.minsize(300,400)
+        self.tale_box.geometry("800x700")
+        self.tale_box.maxsize(850,750)
+        self.tale_box.minsize(800,700)
 
         self.setLogo()
         self.setColor()
@@ -82,11 +82,6 @@ class interface :
         self.envoie()
         self.tale_box.mainloop()
 
-class Repondre_Prediction:
-    message =''
-    
-    def __init__(self,message):
-        self.message = message
 
 def main():
     taleBox = interface()

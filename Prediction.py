@@ -95,9 +95,13 @@ def predire_genre2(texte):
     idx = idx[::-1]
     word_count = word_count[idx] #mot correspondant à % + élévé
     genres = []
-    genres = lda.print_topic(word_count[0, 0], 3)
+    genres = lda.print_topic(word_count[0, 0], 10)
     genres = genres.split('"')
-    return ' , '.join([genres[1],genres[3], genres[5]])
+    return ' , '.join([genres[1],genres[3],
+                       genres[5],genres[7],
+                       genres[9],genres[11],
+                       genres[13],genres[15],
+                       genres[17],genres[19]])
 
 """ Enregistrement """
 '''

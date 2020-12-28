@@ -16,9 +16,9 @@ class RaconteLogicAdapter(LogicAdapter) :
 
     def can_process(self, statement):
         mots1 , mots2 = [] , []
-        with open('intents', 'rb') as file1:
+        with open('Données\intents', 'rb') as file1:
             mots1 = pickle.load(file1)
-        with open('mots_quit', 'rb') as file2:
+        with open('Données\mots_quit', 'rb') as file2:
             mots2 = pickle.load(file2)
             
         non = [m.split() for m in mots1]
@@ -30,8 +30,8 @@ class RaconteLogicAdapter(LogicAdapter) :
         return True
 
     def process(self, input_statement, additional_response_selection_parameters):
-        debut , txt =  mrkv.nb_dernier_mot(input_statement.text)
-        reponse , ajout_histoire = mrkv.markov_genere(15, debut, "" )
+        debut , txt =  mkv.nb_dernier_mot(input_statement.text)
+        reponse , ajout_histoire = mkv.markov_genere(15, debut, "" )
         # reponse
         reponse_statement = Statement(text=reponse)
         reponse_statement.confidence = 1

@@ -56,6 +56,7 @@ def markov_model(contes, contexte=contexte):
 model = markov_model(contes)
 
 def markov_genere(long, debut, texte):
+    debut = debut.lower()    
     if long == 0 or len(debut.split()) < contexte:
         texte += "..."
         return texte, True
@@ -67,7 +68,7 @@ def markov_genere(long, debut, texte):
         return markov_genere(long-1, new, texte)
     
     except KeyError:
-        return "Vous etes tellement doué que je n'est pas d'idée pour la suite, continuez ...", False
+        return "Vous êtes tellement doué que je n'ai pas d'idée pour la suite, continuez ...", False
         
 
 def nb_dernier_mot(texte, nb=contexte) :

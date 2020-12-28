@@ -19,9 +19,8 @@ Tale_Bot = ChatBot(name='TaleBot', read_only=False, logic_adapters=[
         
 intents = ['Bonjour',
            'Salut, comment tu vas ?',
-           'Super bien et toi ?',
-           'Comment tu vas ?',
-           'Trés bien et toi ?',
+           'Super bien et toi comment tu vas ?',
+           'Trés bien',
            'Super, ça va moi aussi',
            'Je content que tu vas bien',
            'Pas bien !',
