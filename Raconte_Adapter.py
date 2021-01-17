@@ -31,12 +31,12 @@ class RaconteLogicAdapter(LogicAdapter) :
 
     def process(self, input_statement, additional_response_selection_parameters):
         debut , txt =  mkv.nb_dernier_mot(input_statement.text)
-        reponse , ajout_histoire = mkv.markov_genere(15, debut, "" )
+        reponse , ajout_histoire = mkv.markov_genere(12, debut, "" )
         # reponse
         reponse_statement = Statement(text=reponse)
         reponse_statement.confidence = 1
 
-        histoire = open('histoire.txt','a')
+        histoire = open('histoire.txt','a' , encoding="utf-8")
         n = histoire.write(' '+ input_statement.text+ ' ')
         if ajout_histoire :
             n = histoire.write(' '+ reponse+ ' ')

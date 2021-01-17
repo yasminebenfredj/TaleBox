@@ -39,7 +39,7 @@ class QuitteLogicAdapter(LogicAdapter) :
         return False
 
     def process(self, input_statement, additional_response_selection_parameters):
-        txt =  open('histoire.txt', 'r')
+        txt =  open('histoire.txt', 'r', encoding="utf-8")
         histoire = txt.read()
         txt.close()
         reponse = "\nHistoire complète : \n"+histoire+".\n\n"
